@@ -1,0 +1,37 @@
+{
+  "name": "honeylog-workers",
+  "private": true,
+  "type": "module",
+  "description": "Send Honeylog pageview events from a Cloudflare site.",
+  "scripts": {
+    "test": "node --test worker.test.js"
+  },
+  "cloudflare": {
+    "bindings": {
+      "HONEYLOG_API_URL": {
+        "description": "Copy this URL from Honeylog."
+      },
+      "HONEYLOG_INGESTION_SECRET": {
+        "description": "Copy this secret from Honeylog. Keep it private."
+      },
+      "HONEYLOG_API_KEY": {
+        "description": "Leave blank unless Honeylog gives you an API key."
+      },
+      "HONEYLOG_SITE_DOMAIN": {
+        "description": "Enter your site domain, for example `example.com`."
+      },
+      "HONEYLOG_SITE_SCHEME": {
+        "description": "Use `https` unless your site uses HTTP."
+      },
+      "HONEYLOG_EVENT_NAME": {
+        "description": "Leave as `pageview` unless Honeylog tells you to change it."
+      },
+      "HONEYLOG_SKIP_PATH_REGEX": {
+        "description": "Keep the default value unless Honeylog tells you to change it."
+      },
+      "ORIGIN_URL": {
+        "description": "Leave blank unless Honeylog tells you to set a custom origin."
+      }
+    }
+  }
+}

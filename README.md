@@ -86,3 +86,7 @@ example.com/*
 - `wrangler.jsonc`: Worker configuration
 - `.dev.vars.example`: local secret placeholders
 - `package.json`: Cloudflare setup text
+
+## Client Portal App
+
+The Next.js Client Portal lives in [`portal/`](./portal) — see [portal/README.md](./portal/README.md) for setup.

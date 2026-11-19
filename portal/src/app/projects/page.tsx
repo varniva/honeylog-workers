@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Projects",
-};
+import { requireUser } from "@/lib/authorization";
 
-export default function ProjectsPage() {
+export const metadata: Metadata = { title: "Projects" };
+
+/**
+ * Protected route: the session is required server-side, and the projects
+ * feature (next task) must scope every lookup with `scopeWhere(session)`.
+ */
+export default async function ProjectsPage() {
+  await requireUser();
+
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Projects</h1>

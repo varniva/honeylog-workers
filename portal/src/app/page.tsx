@@ -1,11 +1,16 @@
-export default function HomePage() {
-  return (
-    <section className="space-y-4">
-      <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Welcome to Client Portal</h1>
-      <p className="max-w-prose text-slate-600">
-        This is the application shell. Client login, project updates, file sharing, and invoices
-        will be built on top of this foundation.
-      </p>
-    </section>
-  );
+import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+
+import { auth } from "@/lib/auth";
+
+export const metadata: Metadata = { title: "Client Portal" };
+
+/**
+ * Home route: sends authenticated users straight to the dashboard matching
+ * their role; anonymous visitors go to login.
+ */
+export default async function HomePage() {
+  const session = await auth();
+  if (!session?.user) redirect("/login");
+  redirect(session.user.role === "OWNER" ? "/dashboard/owner" : "/dashboard/client");
 }

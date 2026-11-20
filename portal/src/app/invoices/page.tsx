@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Invoices",
-};
+import { requireUser } from "@/lib/authorization";
 
-export default function InvoicesPage() {
+export const metadata: Metadata = { title: "Invoices" };
+
+/**
+ * Protected route: the session is required server-side, and the billing
+ * feature (next task) must scope every lookup with `scopeWhere(session)`.
+ */
+export default async function InvoicesPage() {
+  await requireUser();
+
   return (
     <section className="space-y-4">
       <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Invoices</h1>

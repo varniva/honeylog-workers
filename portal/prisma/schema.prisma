@@ -1,0 +1,130 @@
+// Prisma schema for the Client Portal.
+//
+// Auth model:
+// - Workspace: an isolated tenancy owned by exactly one OWNER user (the freelancer).
+// - User: either an OWNER (freelancer) or a CLIENT contact. Client contacts link
+//   to exactly one Client record, which scopes every project/file/invoice they can see.
+// - Passwords are stored only as Argon2id hashes (never plaintext or reversible).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  CLIENT
+}
+
+model Workspace {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner    User     @relation("WorkspaceOwner", fields: [ownerId], references: [id])
+  ownerId  String   @unique
+  clients  Client[]
+  projects Project[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String // Argon2id hash only
+  role         UserRole @default(CLIENT)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // OWNER users own exactly one workspace.
+  ownedWorkspace Workspace? @relation("WorkspaceOwner")
+
+  // CLIENT users belong to a workspace via their client record.
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  clientId    String?    @unique
+  client      Client?    @relation(fields: [clientId], references: [id])
+
+  @@index([workspaceId])
+  @@index([clientId])
+}
+
+model Client {
+  id         String   @id @default(cuid())
+  name       String
+  email      String
+  workspaceId String
+  workspace  Workspace @relation(fields: [workspaceId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user      User?     // Optional contact account; created via owner invitation.
+  projects  Project[]
+  invoices  Invoice[]
+
+  @@index([workspaceId])
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  workspaceId String
+  clientId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace     @relation(fields: [workspaceId], references: [id])
+  client    Client        @relation(fields: [clientId], references: [id])
+  files     ProjectFile[]
+
+  @@index([workspaceId, clientId])
+}
+
+model ProjectFile {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  projectId String
+  createdAt DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@index([projectId])
+}
+
+model Invoice {
+  id         String    @id @default(cuid())
+  number     String
+  amountCents Int
+  status     String    @default("DRAFT") // DRAFT | SENT | PAID
+  dueDate    DateTime?
+  workspaceId String
+  clientId   String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  client    Client    @relation(fields: [clientId], references: [id])
+  payments  Payment[]
+
+  @@unique([workspaceId, number])
+  @@index([workspaceId, clientId])
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  amountCents Int
+  paidAt    DateTime @default(now())
+  invoiceId String
+  createdAt DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id])
+
+  @@index([invoiceId])
+}
